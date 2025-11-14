@@ -1,5 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { sessionManager } from "../session-manager.js";
+import { sessionManager } from "../utils/session-manager.js";
 import { formatSessionSummary } from "../utils/formatter.js";
 import {
   getThinkingSessionToolDescription,

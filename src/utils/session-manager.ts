@@ -1,4 +1,4 @@
-import { ThinkingSession, ThinkingStep } from "./types.js";
+import { ThinkingSession, ThinkingStep } from "../lib/types.js";
 
 class SessionManager {
   private sessions = new Map<string, ThinkingSession>();

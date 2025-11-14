@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { sessionManager } from "../session-manager.js";
-import { ThinkingStep } from "../types.js";
+import { sessionManager } from "../utils/session-manager.js";
+import { ThinkingStep } from "../lib/types.js";
 import { formatSessionSummary } from "../utils/formatter.js";
 import { sequentialThinkingToolDescription } from "../lib/descriptions.js";
 import { sequentialThinkingSchema } from "../lib/schemas.js";

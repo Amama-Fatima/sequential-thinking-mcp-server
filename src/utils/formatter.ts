@@ -1,4 +1,4 @@
-import { ThinkingSession } from "../types.js";
+import { ThinkingSession } from "../lib/types.js";
 
 export function formatSessionSummary(session: ThinkingSession): string {
   let summary = `# Sequential Thinking Session: ${session.sessionId}\n\n`;
