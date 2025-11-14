@@ -11,4 +11,11 @@ This tool enables dynamic thinking processes where you can:
 
 The tool supports non-linear progress and iterative refinement, allowing for a natural problem-solving flow that adapts as you work through challenges.`;
 
-export { sequentialThinkingToolDescription };
+const getThinkingSessionToolDescription = `Retrieve the complete history of a sequential thinking session`;
+
+const listThinkingSessionToolDescription = `List all available sequential thinking sessions`;
+export {
+  sequentialThinkingToolDescription,
+  getThinkingSessionToolDescription,
+  listThinkingSessionToolDescription,
+};

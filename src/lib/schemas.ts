@@ -40,4 +40,14 @@ const sequentialThinkingSchema = z.object({
     .describe("Optional session ID to maintain context across multiple calls"),
 });
 
-export { sequentialThinkingSchema };
+const getThinkingSessionSchema = z.object({
+  session_id: z.string().describe("The session ID to retrieve"),
+});
+
+const listThinkingSessionsSchema = z.object({});
+
+export {
+  sequentialThinkingSchema,
+  getThinkingSessionSchema,
+  listThinkingSessionsSchema,
+};
