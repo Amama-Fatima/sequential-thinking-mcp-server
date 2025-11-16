@@ -4,6 +4,7 @@
   "description": "A remote server for Sequential Thinking MCP",
   "main": "server.js",
   "scripts": {
+    "build": "cd .. && npm install && npm run build",
     "start": "node server.js",
     "dev": "node server.js"
   },
