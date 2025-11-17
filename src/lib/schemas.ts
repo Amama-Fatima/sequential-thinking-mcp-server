@@ -18,6 +18,12 @@ const sequentialThinkingSchema = z.object({
     .boolean()
     .default(true)
     .describe("Whether additional thinking steps are required"),
+  needs_more_thoughts: z
+    .boolean()
+    .default(false)
+    .describe(
+      "Indicator that more thoughts are needed even after reaching estimated total"
+    ),
   is_revision: z
     .boolean()
     .default(false)
@@ -34,10 +40,22 @@ const sequentialThinkingSchema = z.object({
     .positive()
     .optional()
     .describe("Create an alternative branch from this thought number"),
+  branch_name: z
+    .string()
+    .optional()
+    .describe(
+      "Optional name for this branch (e.g., 'optimistic_path', 'alternative_approach')"
+    ),
   session_id: z
     .string()
     .optional()
     .describe("Optional session ID to maintain context across multiple calls"),
+  initial_query: z
+    .string()
+    .optional()
+    .describe(
+      "The original problem or query (used when starting a new session)"
+    ),
 });
 
 const getThinkingSessionSchema = z.object({
@@ -46,8 +64,13 @@ const getThinkingSessionSchema = z.object({
 
 const listThinkingSessionsSchema = z.object({});
 
+const clearSessionSchema = z.object({
+  session_id: z.string().describe("The session ID to clear/reset"),
+});
+
 export {
   sequentialThinkingSchema,
   getThinkingSessionSchema,
   listThinkingSessionsSchema,
+  clearSessionSchema,
 };

@@ -6,6 +6,8 @@ export interface ThinkingStep {
   is_revision?: boolean;
   revises_thought?: number;
   branch_from_thought?: number;
+  revised_by?: number; // Track if this step was later revised
+  revisions?: ThinkingStep[]; // Store revision history
 }
 
 export interface ThinkingSession {
@@ -14,4 +16,10 @@ export interface ThinkingSession {
   branches: Map<number, ThinkingStep[]>;
   createdAt: string;
   lastUpdated: string;
+  initialQuery?: string; // Store the original problem/query
+  metadata?: {
+    totalRevisions: number;
+    totalBranches: number;
+    isComplete: boolean;
+  };
 }
