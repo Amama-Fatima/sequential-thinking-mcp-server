@@ -4,10 +4,12 @@ import { formatSessionSummary } from "../utils/formatter.js";
 import {
   getThinkingSessionToolDescription,
   listThinkingSessionToolDescription,
+  clearSessionToolDescription,
 } from "../lib/descriptions.js";
 import {
   getThinkingSessionSchema,
   listThinkingSessionsSchema,
+  clearSessionSchema,
 } from "../lib/schemas.js";
 
 export function registerSessionTools(server: McpServer) {
@@ -28,7 +30,7 @@ export function registerSessionTools(server: McpServer) {
             content: [
               {
                 type: "text",
-                text: `Session not found: ${session_id}`,
+                text: `Session not found: ${session_id}\n\nUse list_thinking_sessions to see available sessions.`,
               },
             ],
             isError: true,
@@ -79,22 +81,51 @@ export function registerSessionTools(server: McpServer) {
             content: [
               {
                 type: "text",
-                text: "No thinking sessions found.",
+                text: "No thinking sessions found.\n\nCreate a new session by using the sequential_thinking tool.",
               },
             ],
           };
         }
 
         let responseText = `# Available Thinking Sessions\n\n`;
-        responseText += `Total sessions: ${sessionCount}\n\n`;
+        responseText += `**Total sessions:** ${sessionCount}\n\n`;
+        responseText += `---\n\n`;
 
         const sessions = sessionManager.getAllSessions();
-        sessions.forEach((session) => {
-          responseText += `## ${session.sessionId}\n`;
-          responseText += `- Created: ${session.createdAt}\n`;
-          responseText += `- Last Updated: ${session.lastUpdated}\n`;
-          responseText += `- Steps: ${session.steps.length}\n`;
-          responseText += `- Branches: ${session.branches.size}\n\n`;
+
+        // Sort by last updated (most recent first)
+        sessions.sort(
+          (a, b) =>
+            new Date(b.lastUpdated).getTime() -
+            new Date(a.lastUpdated).getTime()
+        );
+
+        sessions.forEach((session, index) => {
+          const stats = sessionManager.getSessionStats(session);
+
+          responseText += `## ${index + 1}. ${session.sessionId}\n\n`;
+
+          if (session.initialQuery) {
+            responseText += `**Query:** ${session.initialQuery}\n`;
+          }
+
+          responseText += `**Status:** ${
+            session.metadata?.isComplete ? "✅ Complete" : "🔄 In Progress"
+          }\n`;
+          responseText += `**Created:** ${new Date(
+            session.createdAt
+          ).toLocaleString()}\n`;
+          responseText += `**Last Updated:** ${new Date(
+            session.lastUpdated
+          ).toLocaleString()}\n`;
+          responseText += `**Main Path Steps:** ${stats.mainPathLength}\n`;
+          responseText += `**Total Steps:** ${stats.totalSteps}\n`;
+          responseText += `**Revisions:** ${stats.totalRevisions}\n`;
+          responseText += `**Branches:** ${stats.totalBranches}\n\n`;
+
+          if (index < sessions.length - 1) {
+            responseText += `---\n\n`;
+          }
         });
 
         return {
@@ -111,6 +142,68 @@ export function registerSessionTools(server: McpServer) {
             {
               type: "text",
               text: `Error listing sessions: ${
+                error instanceof Error ? error.message : String(error)
+              }`,
+            },
+          ],
+          isError: true,
+        };
+      }
+    }
+  );
+
+  // Clear thinking session
+  server.registerTool(
+    "clear_thinking_session",
+    {
+      title: "Clear Thinking Session",
+      description: clearSessionToolDescription,
+      inputSchema: clearSessionSchema.shape,
+    },
+    async (args) => {
+      try {
+        const { session_id } = args as { session_id: string };
+
+        if (!sessionManager.hasSession(session_id)) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Session not found: ${session_id}\n\nUse list_thinking_sessions to see available sessions.`,
+              },
+            ],
+            isError: true,
+          };
+        }
+
+        const deleted = sessionManager.clearSession(session_id);
+
+        if (deleted) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `✅ Session ${session_id} has been cleared successfully.\n\nAll thinking steps, revisions, and branches have been permanently removed.`,
+              },
+            ],
+          };
+        } else {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Failed to clear session: ${session_id}`,
+              },
+            ],
+            isError: true,
+          };
+        }
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error clearing session: ${
                 error instanceof Error ? error.message : String(error)
               }`,
             },
