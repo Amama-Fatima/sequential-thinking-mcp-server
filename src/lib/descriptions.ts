@@ -38,9 +38,16 @@ Clear and reset a sequential thinking session.
 Permanently removes all thinking steps and branches for the specified session.
 Use this to start fresh or clean up completed sessions.`;
 
+const healthCheckDescription = `
+Health check tool for the Sequential Thinking MCP Server.
+
+Returns server status, version information, available tools, and optionally current session statistics.
+Use this to verify the server is running correctly before performing thinking operations.`;
+
 export {
   sequentialThinkingToolDescription,
   getThinkingSessionToolDescription,
   listThinkingSessionToolDescription,
   clearSessionToolDescription,
+  healthCheckDescription,
 };

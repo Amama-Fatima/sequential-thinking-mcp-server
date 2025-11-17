@@ -68,9 +68,17 @@ const clearSessionSchema = z.object({
   session_id: z.string().describe("The session ID to clear/reset"),
 });
 
+const healthCheckSchema = z.object({
+  include_sessions: z
+    .boolean()
+    .default(false)
+    .describe("Include current session statistics in the health check"),
+});
+
 export {
   sequentialThinkingSchema,
   getThinkingSessionSchema,
   listThinkingSessionsSchema,
   clearSessionSchema,
+  healthCheckSchema,
 };
