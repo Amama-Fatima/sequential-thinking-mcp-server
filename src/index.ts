@@ -3,6 +3,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { registerSequentialThinkingTool } from "./tools/sequential-thinking.js";
 import { registerSessionTools } from "./tools/session.js";
+import { registerHealthCheckTool } from "./tools/health-check.js";
 
 const server = new McpServer({
   name: "sequential-thinking-mcp",
@@ -11,6 +12,7 @@ const server = new McpServer({
 
 registerSequentialThinkingTool(server);
 registerSessionTools(server);
+registerHealthCheckTool(server);
 
 (async () => {
   try {
