@@ -18,7 +18,32 @@ export function registerSequentialThinkingTool(server: McpServer) {
     },
     async (args) => {
       try {
-        const parsed = sequentialThinkingSchema.parse(args);
+        // Pre-process the input to handle zero values before Zod validation
+        const processedArgs = { ...args };
+
+        // Remove fields that have value "0" or 0 before validation
+        if (processedArgs.revises_thought === 0) {
+          delete processedArgs.revises_thought;
+        }
+
+        if (processedArgs.branch_from_thought === 0) {
+          delete processedArgs.branch_from_thought;
+        }
+
+        // Also handle boolean string conversions
+        if (typeof processedArgs.is_revision === "string") {
+          processedArgs.is_revision = processedArgs.is_revision === "true";
+        }
+        if (typeof processedArgs.needs_more_thoughts === "string") {
+          processedArgs.needs_more_thoughts =
+            processedArgs.needs_more_thoughts === "true";
+        }
+        if (typeof processedArgs.next_thought_needed === "string") {
+          processedArgs.next_thought_needed =
+            processedArgs.next_thought_needed === "true";
+        }
+
+        const parsed = sequentialThinkingSchema.parse(processedArgs);
 
         // Now all types are guaranteed correct
         const {
