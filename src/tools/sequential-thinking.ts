@@ -18,31 +18,22 @@ export function registerSequentialThinkingTool(server: McpServer) {
     },
     async (args) => {
       try {
+        const parsed = sequentialThinkingSchema.parse(args);
+
+        // Now all types are guaranteed correct
         const {
           thought,
           thought_number,
           total_thoughts,
-          next_thought_needed = true,
-          needs_more_thoughts = false,
-          is_revision = false,
+          next_thought_needed,
+          needs_more_thoughts,
+          is_revision,
           revises_thought,
           branch_from_thought,
           branch_name,
           session_id,
           initial_query,
-        } = args as {
-          thought: string;
-          thought_number: number;
-          total_thoughts: number;
-          next_thought_needed?: boolean;
-          needs_more_thoughts?: boolean;
-          is_revision?: boolean;
-          revises_thought?: number;
-          branch_from_thought?: number;
-          branch_name?: string;
-          session_id?: string;
-          initial_query?: string;
-        };
+        } = parsed;
 
         // Validate input
         if (!thought || thought.trim().length === 0) {
