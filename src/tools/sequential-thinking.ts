@@ -6,6 +6,7 @@ import {
   formatThinkingCapabilities,
 } from "../utils/formatter.js";
 import { sequentialThinkingToolDescription } from "../lib/descriptions.js";
+import { sequentialThinkingSchema } from "../lib/schemas.js";
 
 export function registerSequentialThinkingTool(server: McpServer) {
   server.registerTool(
@@ -13,138 +14,51 @@ export function registerSequentialThinkingTool(server: McpServer) {
     {
       title: "Sequential Thinking Tool",
       description: sequentialThinkingToolDescription,
-      inputSchema: {
-        type: "object",
-        properties: {
-          thought: {
-            type: "string",
-            description: "The content of the current thought or reasoning step",
-          },
-          thought_number: {
-            oneOf: [{ type: "number" }, { type: "string" }],
-            description:
-              "The current thought number (1-indexed). Can be provided as a number or string.",
-          },
-          total_thoughts: {
-            oneOf: [{ type: "number" }, { type: "string" }],
-            description:
-              "The estimated total number of thoughts needed. Can be adjusted if needs_more_thoughts is true. Can be provided as a number or string.",
-          },
-          next_thought_needed: {
-            oneOf: [{ type: "boolean" }, { type: "string" }],
-            description:
-              "Whether another thought is needed after this one. Defaults to true.",
-            default: true,
-          },
-          needs_more_thoughts: {
-            oneOf: [{ type: "boolean" }, { type: "string" }],
-            description:
-              "Set to true if you realize you need more thoughts than initially estimated. Defaults to false.",
-            default: false,
-          },
-          is_revision: {
-            oneOf: [{ type: "boolean" }, { type: "string" }],
-            description:
-              "Set to true if this thought revises a previous thought. Defaults to false.",
-            default: false,
-          },
-          revises_thought: {
-            oneOf: [{ type: "number" }, { type: "string" }],
-            description:
-              "If is_revision is true, specify which thought number is being revised. Can be provided as a number or string.",
-          },
-          branch_from_thought: {
-            oneOf: [{ type: "number" }, { type: "string" }],
-            description:
-              "To create an alternative reasoning path, specify which thought number to branch from. Can be provided as a number or string.",
-          },
-          branch_name: {
-            type: "string",
-            description:
-              "Optional name for the alternative branch being created",
-          },
-          session_id: {
-            type: "string",
-            description:
-              "Optional session ID to continue a previous thinking session",
-          },
-          initial_query: {
-            type: "string",
-            description:
-              "The original query or problem being solved (used when starting a new session)",
-          },
-        },
-        required: ["thought", "thought_number", "total_thoughts"],
-      } as any,
+      inputSchema: sequentialThinkingSchema.shape,
     },
-    async (args: any) => {
+    async (args) => {
       try {
-        // Handle all type coercion manually for maximum flexibility
+        // Pre-process the input to handle zero values before Zod validation
         const processedArgs = { ...args };
 
-        // Coerce thought_number to number
-        let thought_number = 1;
-        if (processedArgs.thought_number !== undefined) {
-          thought_number = Number(processedArgs.thought_number);
-          if (isNaN(thought_number)) thought_number = 1;
+        // Remove fields that have value "0" or 0 before validation
+        if (processedArgs.revises_thought === 0) {
+          delete processedArgs.revises_thought;
         }
 
-        // Coerce total_thoughts to number
-        let total_thoughts = thought_number;
-        if (processedArgs.total_thoughts !== undefined) {
-          total_thoughts = Number(processedArgs.total_thoughts);
-          if (isNaN(total_thoughts)) total_thoughts = thought_number;
+        if (processedArgs.branch_from_thought === 0) {
+          delete processedArgs.branch_from_thought;
         }
 
-        // Coerce revises_thought to number or undefined
-        let revises_thought: number | undefined = undefined;
-        if (
-          processedArgs.revises_thought !== undefined &&
-          processedArgs.revises_thought !== 0 &&
-          processedArgs.revises_thought !== "0"
-        ) {
-          const parsed = Number(processedArgs.revises_thought);
-          if (!isNaN(parsed) && parsed > 0) {
-            revises_thought = parsed;
-          }
+        // Also handle boolean string conversions
+        if (typeof processedArgs.is_revision === "string") {
+          processedArgs.is_revision = processedArgs.is_revision === "true";
+        }
+        if (typeof processedArgs.needs_more_thoughts === "string") {
+          processedArgs.needs_more_thoughts =
+            processedArgs.needs_more_thoughts === "true";
+        }
+        if (typeof processedArgs.next_thought_needed === "string") {
+          processedArgs.next_thought_needed =
+            processedArgs.next_thought_needed === "true";
         }
 
-        // Coerce branch_from_thought to number or undefined
-        let branch_from_thought: number | undefined = undefined;
-        if (
-          processedArgs.branch_from_thought !== undefined &&
-          processedArgs.branch_from_thought !== 0 &&
-          processedArgs.branch_from_thought !== "0"
-        ) {
-          const parsed = Number(processedArgs.branch_from_thought);
-          if (!isNaN(parsed) && parsed > 0) {
-            branch_from_thought = parsed;
-          }
-        }
+        const parsed = sequentialThinkingSchema.parse(processedArgs);
 
-        // Coerce boolean values
-        const is_revision =
-          processedArgs.is_revision === true ||
-          processedArgs.is_revision === "true";
-        const needs_more_thoughts =
-          processedArgs.needs_more_thoughts === true ||
-          processedArgs.needs_more_thoughts === "true";
-        const next_thought_needed =
-          processedArgs.next_thought_needed === true ||
-          processedArgs.next_thought_needed === "true" ||
-          processedArgs.next_thought_needed === undefined;
-
-        // Get string values
-        const thought = String(processedArgs.thought || "");
-        const branch_name = processedArgs.branch_name
-          ? String(processedArgs.branch_name)
-          : undefined;
-        const session_id = processedArgs.session_id
-          ? String(processedArgs.session_id)
-          : undefined;
-        const initial_query = processedArgs.initial_query
-          ? String(processedArgs.initial_query)
-          : undefined;
+        // Now all types are guaranteed correct
+        const {
+          thought,
+          thought_number,
+          total_thoughts,
+          next_thought_needed,
+          needs_more_thoughts,
+          is_revision,
+          revises_thought,
+          branch_from_thought,
+          branch_name,
+          session_id,
+          initial_query,
+        } = parsed;
 
         // Validate input
         if (!thought || thought.trim().length === 0) {
@@ -156,7 +70,7 @@ export function registerSequentialThinkingTool(server: McpServer) {
               },
             ],
             isError: true,
-          } as any;
+          };
         }
 
         if (thought_number < 1) {
@@ -168,7 +82,7 @@ export function registerSequentialThinkingTool(server: McpServer) {
               },
             ],
             isError: true,
-          } as any;
+          };
         }
 
         if (total_thoughts < thought_number) {
@@ -180,7 +94,7 @@ export function registerSequentialThinkingTool(server: McpServer) {
               },
             ],
             isError: true,
-          } as any;
+          };
         }
 
         if (
@@ -195,7 +109,7 @@ export function registerSequentialThinkingTool(server: McpServer) {
               },
             ],
             isError: true,
-          } as any;
+          };
         }
 
         if (
@@ -211,7 +125,7 @@ export function registerSequentialThinkingTool(server: McpServer) {
               },
             ],
             isError: true,
-          } as any;
+          };
         }
 
         // Get or create session
@@ -244,7 +158,7 @@ export function registerSequentialThinkingTool(server: McpServer) {
               },
             ],
             isError: true,
-          } as any;
+          };
         }
 
         // Update completion status
@@ -305,7 +219,7 @@ export function registerSequentialThinkingTool(server: McpServer) {
               text: responseText,
             },
           ],
-        } as any;
+        };
       } catch (error) {
         return {
           content: [
@@ -317,7 +231,7 @@ export function registerSequentialThinkingTool(server: McpServer) {
             },
           ],
           isError: true,
-        } as any;
+        };
       }
     }
   );
