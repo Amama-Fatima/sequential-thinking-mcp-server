@@ -1,48 +1,53 @@
 const sequentialThinkingToolDescription = `
-Adaptive multi-step reflective reasoning tool for complex problem-solving.
+Enables sequential, step-by-step reasoning for complex problem-solving. Break down problems into numbered thoughts that build on each other. Supports revising previous thoughts and exploring alternative reasoning paths (branches).
 
-This tool enables dynamic thinking processes where you can:
-- Break down complex problems into sequential steps
-- Adjust the total number of thoughts as understanding deepens (increase or decrease total_thoughts)
-- Revise previous thoughts when new insights emerge (maintains revision history)
-- Branch into alternative reasoning paths with optional naming
-- Express uncertainty and explore different approaches
-- Maintain context across multiple thinking steps
-- Continue thinking even after reaching estimated total using needs_more_thoughts
+REQUIRED parameters:
+- thought (string): The content of this reasoning step
+- thought_number (integer): Current step number, must be a positive integer (1-indexed), NOT a string
+- total_thoughts (integer): Estimated total steps needed, must be a positive integer, NOT a string
+- next_thought_needed (boolean): Set true to continue thinking, false when reasoning is complete
 
-The tool supports non-linear progress and iterative refinement, allowing for a natural problem-solving flow that adapts as you work through challenges.
+OPTIONAL parameters:
+- needs_more_thoughts (boolean, default: false): Set true if you need more steps than originally estimated
+- is_revision (boolean, default: false): Set true if revising a previous thought
+- revises_thought (integer): Which thought number to revise (required if is_revision=true), must be a positive integer
+- branch_from_thought (integer): Create alternative path from this thought number, must be a positive integer
+- branch_name (string): Optional name for the alternative branch
+- session_id (string): Continue existing session (auto-generated if omitted)
+- initial_query (string): The original problem being solved
 
-Key parameters:
-- next_thought_needed: Whether you need to continue (normal flow control)
-- needs_more_thoughts: Signal that you need additional thoughts beyond the original estimate
-- is_revision: Mark this as a revision of previous thinking
-- branch_from_thought: Explore alternative paths from a specific thought
-
-You can revise any previous thought (1 to current thought_number) and branch from any existing step.`;
+Example: {"thought": "First, analyze the requirements", "thought_number": 1, "total_thoughts": 5, "next_thought_needed": true}`;
 
 const getThinkingSessionToolDescription = `
-Retrieve the complete history of a sequential thinking session.
+Retrieves the complete history and structure of a thinking session, including all thoughts, revisions, and alternative branches.
 
-Returns all thinking steps, revisions, and branches for the specified session.
-Includes metadata about the session's progress and structure.`;
+REQUIRED parameters:
+- session_id (string): The ID of the session to retrieve
+
+Returns: Full session details with all thinking steps, revision history, branch structure, and session metadata.`;
 
 const listThinkingSessionToolDescription = `
-List all available sequential thinking sessions.
+Lists all available thinking sessions with their status, creation time, and progress statistics.
 
-Shows session IDs, creation times, step counts, and completion status.
-Useful for managing multiple parallel thinking processes.`;
+NO parameters required (pass empty object {})
+
+Returns: List of all sessions showing session IDs, completion status, step counts, revisions, and branches. Sorted by most recently updated.`;
 
 const clearSessionToolDescription = `
-Clear and reset a sequential thinking session.
+Permanently deletes a thinking session and all its data including thoughts, revisions, and branches. Cannot be undone.
 
-Permanently removes all thinking steps and branches for the specified session.
-Use this to start fresh or clean up completed sessions.`;
+REQUIRED parameters:
+- session_id (string): The ID of the session to delete
+
+Returns: Confirmation message on successful deletion.`;
 
 const healthCheckDescription = `
-Health check tool for the Sequential Thinking MCP Server.
+Verifies the MCP server is running and returns server status, version, and available tools.
 
-Returns server status, version information, available tools, and optionally current session statistics.
-Use this to verify the server is running correctly before performing thinking operations.`;
+OPTIONAL parameters:
+- include_sessions (boolean, default: false): Include current session count and statistics in the response
+
+Returns: Server health status, version number, list of available tools, and optionally session statistics.`;
 
 export {
   sequentialThinkingToolDescription,

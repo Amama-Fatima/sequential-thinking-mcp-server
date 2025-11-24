@@ -3,15 +3,15 @@ import { z } from "zod";
 const sequentialThinkingSchema = z.object({
   thought: z.string(),
 
-  thought_number: z.coerce.number().int().positive(),
-  total_thoughts: z.coerce.number().int().positive(),
+  thought_number: z.number().int().positive(),
+  total_thoughts: z.number().int().positive(),
+  next_thought_needed: z.coerce.boolean(),
 
-  next_thought_needed: z.coerce.boolean().default(true),
   needs_more_thoughts: z.coerce.boolean().default(false),
   is_revision: z.coerce.boolean().default(false),
 
-  revises_thought: z.coerce.number().int().positive().optional(),
-  branch_from_thought: z.coerce.number().int().positive().optional(),
+  revises_thought: z.number().int().positive().optional(),
+  branch_from_thought: z.number().int().positive().optional(),
 
   branch_name: z.string().optional(),
   session_id: z.string().optional(),
